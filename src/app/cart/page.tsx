@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ShoppingCart, CreditCard, Trash2, Plus, Minus, Pizza } from 'lucide-react';
 import { useCart } from '@/context/CartContext'; 
 import Image from 'next/image'; 
+import Link from 'next/link'; // Import Link
 
 interface CustomPizzaDetails {
   crust?: string;
@@ -62,6 +63,11 @@ export default function CartPage() {
                   data-ai-hint="empty cart" 
                   className="mb-8 rounded-lg shadow-md mx-auto" 
                 />
+                 <Link href="/" passHref>
+                    <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                        Browse Menu
+                    </Button>
+                 </Link>
               </div>
             ) : (
               <div className="space-y-6">
@@ -102,7 +108,7 @@ export default function CartPage() {
                         <p className="text-sm text-muted-foreground sm:hidden mt-1">Unit Price: ${item.price.toFixed(2)}</p>
                       </div>
                       <div className="flex items-center gap-2 self-center sm:self-auto">
-                        <Button variant="outline" size="icon" onClick={() => updateItemQuantity(item.id, item.quantity - 1)} aria-label="Decrease quantity">
+                        <Button variant="outline" size="icon" onClick={() => updateItemQuantity(item.id, item.quantity - 1)} aria-label="Decrease quantity" disabled={item.quantity <=1}>
                           <Minus size={16} />
                         </Button>
                         <span className="font-medium w-8 text-center text-card-foreground">{item.quantity}</span>
@@ -122,10 +128,12 @@ export default function CartPage() {
                     <p className="text-xl font-semibold text-card-foreground">Total:</p>
                     <p className="text-2xl font-bold text-primary">${getCartTotal().toFixed(2)}</p>
                   </div>
-                  <Button size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold">
-                    <CreditCard size={20} className="mr-2" />
-                    Proceed to Checkout (Coming Soon)
-                  </Button>
+                  <Link href="/checkout" passHref>
+                    <Button size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold">
+                      <CreditCard size={20} className="mr-2" />
+                      Proceed to Checkout
+                    </Button>
+                  </Link>
                 </div>
               </div>
             )}
