@@ -1,30 +1,87 @@
+
+"use client"; 
+
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, CreditCard } from 'lucide-react';
+import { ShoppingCart, CreditCard, Trash2, Plus, Minus } from 'lucide-react';
+import { useCart } from '@/context/CartContext'; 
+import Image from 'next/image'; 
 
 export default function CartPage() {
+  const { cartItems, removeFromCart, updateItemQuantity, getCartTotal } = useCart();
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-12">
-        <Card className="max-w-2xl mx-auto shadow-lg">
-          <CardHeader className="text-center">
+        <Card className="max-w-3xl mx-auto shadow-lg">
+          <CardHeader className="text-center border-b pb-6">
             <div className="inline-flex items-center justify-center bg-primary text-primary-foreground rounded-full p-3 mb-4 mx-auto">
               <ShoppingCart size={32} />
             </div>
             <CardTitle className="text-3xl font-bold text-primary">Your Shopping Cart</CardTitle>
           </CardHeader>
-          <CardContent className="text-center">
-            <CardDescription className="text-lg text-muted-foreground mb-6">
-              Your cart is currently empty. Start adding some delicious items from our menu!
-            </CardDescription>
-            <img src="https://placehold.co/500x250.png" alt="Empty shopping cart" data-ai-hint="empty cart" className="mb-8 rounded-lg shadow-md mx-auto" />
-            <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold">
-              <CreditCard size={20} className="mr-2" />
-              Proceed to Checkout (Coming Soon)
-            </Button>
+          <CardContent className="py-6">
+            {cartItems.length === 0 ? (
+              <div className="text-center">
+                <CardDescription className="text-lg text-muted-foreground mb-6">
+                  Your cart is currently empty. Start adding some delicious items from our menu!
+                </CardDescription>
+                <Image 
+                  src="https://placehold.co/500x250.png" 
+                  alt="Empty shopping cart" 
+                  width={500} 
+                  height={250}
+                  data-ai-hint="empty cart" 
+                  className="mb-8 rounded-lg shadow-md mx-auto" 
+                />
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="flex items-center gap-4 p-4 border rounded-lg shadow-sm bg-card">
+                    <div className="relative w-20 h-20 rounded-md overflow-hidden">
+                      <Image 
+                        src={item.imageUrl} 
+                        alt={item.name} 
+                        layout="fill"
+                        objectFit="cover"
+                        data-ai-hint={item.imageHint || item.category}
+                      />
+                    </div>
+                    <div className="flex-grow">
+                      <h3 className="font-semibold text-lg text-card-foreground">{item.name}</h3>
+                      <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="icon" onClick={() => updateItemQuantity(item.id, item.quantity - 1)}>
+                        <Minus size={16} />
+                      </Button>
+                      <span className="font-medium w-8 text-center text-card-foreground">{item.quantity}</span>
+                      <Button variant="outline" size="icon" onClick={() => updateItemQuantity(item.id, item.quantity + 1)}>
+                        <Plus size={16} />
+                      </Button>
+                    </div>
+                    <p className="font-semibold text-lg w-20 text-right text-primary">${(item.price * item.quantity).toFixed(2)}</p>
+                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/80" onClick={() => removeFromCart(item.id)}>
+                      <Trash2 size={20} />
+                    </Button>
+                  </div>
+                ))}
+                <div className="mt-8 pt-6 border-t">
+                  <div className="flex justify-between items-center mb-4">
+                    <p className="text-xl font-semibold text-card-foreground">Total:</p>
+                    <p className="text-2xl font-bold text-primary">${getCartTotal().toFixed(2)}</p>
+                  </div>
+                  <Button size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold">
+                    <CreditCard size={20} className="mr-2" />
+                    Proceed to Checkout (Coming Soon)
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </main>

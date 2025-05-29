@@ -1,14 +1,30 @@
+
+"use client"; // Add "use client" as we'll use a hook (useCart)
+
 import Image from 'next/image';
 import type { MenuItem } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
+import { useCart } from '@/context/CartContext'; // Import useCart
+import { useToast } from '@/hooks/use-toast'; // Import useToast for feedback
 
 interface MenuItemCardProps {
   item: MenuItem;
 }
 
 export default function MenuItemCard({ item }: MenuItemCardProps) {
+  const { addToCart } = useCart();
+  const { toast } = useToast();
+
+  const handleAddToCart = () => {
+    addToCart(item);
+    toast({
+      title: "Added to cart!",
+      description: `${item.name} has been added to your cart.`,
+    });
+  };
+
   return (
     <Card className="flex flex-col overflow-hidden h-full shadow-lg hover:shadow-xl transition-shadow duration-300">
       <CardHeader className="p-0">
@@ -28,7 +44,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
         <p className="text-lg font-bold text-primary mt-auto">${item.price.toFixed(2)}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <Button variant="default" className="w-full bg-primary hover:bg-primary/90">
+        <Button variant="default" className="w-full bg-primary hover:bg-primary/90" onClick={handleAddToCart}> {/* Add onClick handler */}
           <PlusCircle size={18} className="mr-2" />
           Add to Cart
         </Button>
