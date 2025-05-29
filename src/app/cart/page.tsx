@@ -5,9 +5,34 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, CreditCard, Trash2, Plus, Minus } from 'lucide-react';
+import { ShoppingCart, CreditCard, Trash2, Plus, Minus, Pizza } from 'lucide-react';
 import { useCart } from '@/context/CartContext'; 
 import Image from 'next/image'; 
+
+interface CustomPizzaDetails {
+  crust?: string;
+  sauce?: string;
+  toppings?: string[];
+}
+
+function parseCustomPizzaDescription(description: string): CustomPizzaDetails {
+  const details: CustomPizzaDetails = {};
+  
+  const crustMatch = description.match(/Crust: (.*?)\./);
+  if (crustMatch && crustMatch[1]) details.crust = crustMatch[1];
+
+  const sauceMatch = description.match(/Sauce: (.*?)\./);
+  if (sauceMatch && sauceMatch[1]) details.sauce = sauceMatch[1];
+
+  const toppingsMatch = description.match(/Toppings: (.*?)\./);
+  if (toppingsMatch && toppingsMatch[1] && toppingsMatch[1].trim() !== '') {
+    details.toppings = toppingsMatch[1].split(', ').map(t => t.trim());
+  } else {
+    details.toppings = [];
+  }
+  
+  return details;
+}
 
 export default function CartPage() {
   const { cartItems, removeFromCart, updateItemQuantity, getCartTotal } = useCart();
@@ -40,36 +65,58 @@ export default function CartPage() {
               </div>
             ) : (
               <div className="space-y-6">
-                {cartItems.map((item) => (
-                  <div key={item.id} className="flex items-center gap-4 p-4 border rounded-lg shadow-sm bg-card">
-                    <div className="relative w-20 h-20 rounded-md overflow-hidden">
-                      <Image 
-                        src={item.imageUrl} 
-                        alt={item.name} 
-                        layout="fill"
-                        objectFit="cover"
-                        data-ai-hint={item.imageHint || item.category}
-                      />
-                    </div>
-                    <div className="flex-grow">
-                      <h3 className="font-semibold text-lg text-card-foreground">{item.name}</h3>
-                      <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="icon" onClick={() => updateItemQuantity(item.id, item.quantity - 1)}>
-                        <Minus size={16} />
+                {cartItems.map((item) => {
+                  const isCustomPizza = item.id.startsWith('custom-pizza-');
+                  let customDetails: CustomPizzaDetails | null = null;
+                  if (isCustomPizza) {
+                    customDetails = parseCustomPizzaDescription(item.description);
+                  }
+
+                  return (
+                    <div key={item.id} className="flex items-start sm:items-center gap-4 p-4 border rounded-lg shadow-sm bg-card flex-col sm:flex-row">
+                      <div className="relative w-24 h-24 sm:w-20 sm:h-20 rounded-md overflow-hidden self-center sm:self-start">
+                        <Image 
+                          src={item.imageUrl} 
+                          alt={item.name} 
+                          layout="fill"
+                          objectFit="cover"
+                          data-ai-hint={item.imageHint || item.category}
+                        />
+                      </div>
+                      <div className="flex-grow">
+                        <h3 className="font-semibold text-lg text-card-foreground">{item.name}</h3>
+                        {isCustomPizza && customDetails ? (
+                          <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                            {customDetails.crust && <p><strong>Crust:</strong> {customDetails.crust}</p>}
+                            {customDetails.sauce && <p><strong>Sauce:</strong> {customDetails.sauce}</p>}
+                            {customDetails.toppings && customDetails.toppings.length > 0 && (
+                              <p><strong>Toppings:</strong> {customDetails.toppings.join(', ')}</p>
+                            )}
+                            {!customDetails.crust && !customDetails.sauce && (!customDetails.toppings || customDetails.toppings.length === 0) && (
+                                <p>{item.description}</p> 
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">{item.description}</p>
+                        )}
+                        <p className="text-sm text-muted-foreground sm:hidden mt-1">Unit Price: ${item.price.toFixed(2)}</p>
+                      </div>
+                      <div className="flex items-center gap-2 self-center sm:self-auto">
+                        <Button variant="outline" size="icon" onClick={() => updateItemQuantity(item.id, item.quantity - 1)} aria-label="Decrease quantity">
+                          <Minus size={16} />
+                        </Button>
+                        <span className="font-medium w-8 text-center text-card-foreground">{item.quantity}</span>
+                        <Button variant="outline" size="icon" onClick={() => updateItemQuantity(item.id, item.quantity + 1)} aria-label="Increase quantity">
+                          <Plus size={16} />
+                        </Button>
+                      </div>
+                      <p className="font-semibold text-lg w-auto sm:w-20 text-right text-primary self-center sm:self-auto">${(item.price * item.quantity).toFixed(2)}</p>
+                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/80 self-center sm:self-auto" onClick={() => removeFromCart(item.id)} aria-label="Remove item">
+                        <Trash2 size={20} />
                       </Button>
-                      <span className="font-medium w-8 text-center text-card-foreground">{item.quantity}</span>
-                      <Button variant="outline" size="icon" onClick={() => updateItemQuantity(item.id, item.quantity + 1)}>
-                        <Plus size={16} />
-                      </Button>
                     </div>
-                    <p className="font-semibold text-lg w-20 text-right text-primary">${(item.price * item.quantity).toFixed(2)}</p>
-                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/80" onClick={() => removeFromCart(item.id)}>
-                      <Trash2 size={20} />
-                    </Button>
-                  </div>
-                ))}
+                  );
+                })}
                 <div className="mt-8 pt-6 border-t">
                   <div className="flex justify-between items-center mb-4">
                     <p className="text-xl font-semibold text-card-foreground">Total:</p>
