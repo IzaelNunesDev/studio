@@ -4,7 +4,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, ShoppingBag } from 'lucide-react';
+import { CheckCircle2, ShoppingBag, History } from 'lucide-react';
 import Image from 'next/image';
 
 export default function OrderConfirmationPage() {
@@ -44,7 +44,8 @@ export default function OrderConfirmationPage() {
               </Link>
               <Link href="/order-history" passHref>
                 <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                  View Order History (Coming Soon)
+                  <History size={20} className="mr-2" />
+                  View Order History
                 </Button>
               </Link>
             </div>
